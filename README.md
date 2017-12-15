@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # D3AngularSpringRest
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.4.5.
@@ -25,3 +26,7 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+=======
+# d3Angular-Spring-Rest
+Angular2+ D3 v4 Spring Boot Rest
+>>>>>>> c45fe2540aa27267f72bb99006f30175aad420bb
