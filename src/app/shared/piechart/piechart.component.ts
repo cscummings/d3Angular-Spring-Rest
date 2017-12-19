@@ -57,7 +57,7 @@ export class PiechartComponent implements OnInit, OnChanges {
 
     const values: number[] = this.pieData.map(data => data.CASES);
 
-    let pie = d3.pie();
+    const pie = d3.pie();
     const path = d3.arc().outerRadius( this.radius - 10).innerRadius(0);
 
     const label = d3.arc()

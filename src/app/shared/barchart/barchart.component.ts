@@ -1,5 +1,8 @@
 import { Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
+import { BData } from '../data.interface';
+import { DataService } from '../data.service';
+
 
 @Component({
   selector: 'app-barchart',
@@ -8,8 +11,9 @@ import * as d3 from 'd3';
   encapsulation: ViewEncapsulation.None
 })
 export class BarchartComponent implements OnInit, OnChanges {
-  @ViewChild('barChart') private barChartContainer: ElementRef;
+  @ViewChild('simpleBarChart') private barChartContainer: ElementRef;
   @Input() private data: Array<any>;
+  private lineData: BData[];
 
   private chart: any;
   private margin: any = {top: 20, right: 20, bottom: 70, left: 40};
@@ -22,7 +26,7 @@ export class BarchartComponent implements OnInit, OnChanges {
   private xDomain: any;
   private yDomain: any;
 
-  constructor() { }
+  constructor(private dataService: DataService ) { }
 
   ngOnInit() {
     this.createChart();
