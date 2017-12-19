@@ -10,18 +10,33 @@ export class DataService {
       {
         date: new Date('01/01/2018'),
         RecordInBatch: 271
-      }];
-    //   {
-    //     date: '01/02/2018',
-    //     RecordInBatch: 2271
+      },
+      {
+        date: new Date('01/02/2018'),
+        RecordInBatch: 2271
 
-    //   },
-    //   {
-    //     date: '01/03/2018',
-    //     RecordInBatch: 71
+      },
+      {
+        date: new Date('01/03/2018'),
+        RecordInBatch: 71
 
-    //   }
-    // ];
+      },
+      {
+        date: new Date('01/04/2018'),
+        RecordInBatch: 714
+
+      },
+      {
+        date: new Date('01/05/2018'),
+        RecordInBatch: 3471
+
+      },
+      {
+        date: new Date('01/06/2018'),
+        RecordInBatch: 12
+
+      }
+    ];
 
     private mockData: IData[] = [
       {

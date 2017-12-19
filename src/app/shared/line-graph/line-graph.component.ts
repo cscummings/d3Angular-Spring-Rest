@@ -10,7 +10,7 @@ import { DataService } from '../data.service';
   encapsulation: ViewEncapsulation.None
 })
 export class LineGraphComponent implements OnInit, OnChanges {
-  @ViewChild('simpleLineChart') private lineChartContainer: ElementRef;
+  @ViewChild('containerLineChart') private lineChartContainer: ElementRef;
   // @Input() private data: Array<any>;
 
   private chart: any;
@@ -52,12 +52,13 @@ export class LineGraphComponent implements OnInit, OnChanges {
 
     const parseDate = d3.timeParse('%Y-%m-%d');
 
-    const svg = d3.select(element[0])
-    .append('svg')
+    this.host.html('');
+    this.svg = this.host.append('svg')
+    .data([this.lineData])
     .attr('width', this.width + this.margin.left + this.margin.right)
     .attr('height', this.height + this.margin.top + this.margin.right)
     .append('g')
-    .attr('transform', 'translate(${this.margin.left}, ${this.margin.top} )');
+    .attr('transform', 'translate(' + this.width / 2  + ',' + this.height / 2 + ')');
 
 
     // this.lineData.forEach(function(d) {
@@ -78,18 +79,18 @@ export class LineGraphComponent implements OnInit, OnChanges {
     const xValues: Date[] = this.lineData.map(data => data.date);
     const yValues: number[] = this.lineData.map(data => data.RecordInBatch);
 
-    const line = d3.line()
+    const line = d3.line<BData>()
     //  .x( d => this.xScale(xValues))
     //  .y( d => this.yScale(yValues));
     .x(function(d, i) {return this.xScale(i); })
-    .y(function(d) { return this.yScale(d.values); });
+    .y(function(d) { return this.yScale(d.RecordInBatch); });
 
-    this.chart = svg.append('g')
+    this.chart = this.svg.append('g')
     .attr('class', 'x axis')
     .attr('transform', 'translate(0,${this.height})')
     .call(this.xAxis);
 
-  this.chart = svg.append('g')
+  this.chart = this.svg.append('g')
     .attr('class', 'y axis')
     .call(this.yAxis)
     .append('text')
@@ -99,10 +100,10 @@ export class LineGraphComponent implements OnInit, OnChanges {
     .style('text-anchor', 'end')
     .text(' # Records');
 
-  this.chart = svg.append('path')
-    .data(this.lineData)
+  this.chart = this.svg.append('path')
+    .datum(this.lineData)
     .attr('class', 'line')
-    .attr('d', line);
+    .attr('dx', line);
   }
 
   updateChart() {

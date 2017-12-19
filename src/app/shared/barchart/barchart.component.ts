@@ -11,11 +11,13 @@ import { DataService } from '../data.service';
   encapsulation: ViewEncapsulation.None
 })
 export class BarchartComponent implements OnInit, OnChanges {
-  @ViewChild('simpleBarChart') private barChartContainer: ElementRef;
-  @Input() private data: Array<any>;
-  private lineData: BData[];
+  @ViewChild('containerBarChart') private barChartContainer: ElementRef;
+  // @Input() private data: Array<any>;
+  private barData: BData[];
 
   private chart: any;
+  private host: any;
+  private svg: any;
   private margin: any = {top: 20, right: 20, bottom: 70, left: 40};
   private width: any = 400 - this.margin.left - this.margin.right;
   private height: any = 400 - this.margin.left - this.margin.right;
@@ -30,7 +32,7 @@ export class BarchartComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     this.createChart();
-    if (this.data) {
+    if (this.barData) {
       this.updateChart();
     }
   }
@@ -44,12 +46,18 @@ export class BarchartComponent implements OnInit, OnChanges {
   createChart() {
   // set width and height here instead
   const element = this.barChartContainer.nativeElement;
-  const svg = d3.select(element[0])
-    .append('svg')
-    .attr('width', this.width + this.margin.left + this.margin.right)
-    .attr('height', this.height + this.margin.top + this.margin.right)
-    .append('g')
-    .attr('transform', 'translate(${this.margin.left}, ${this.margin.top} )');
+  this.host = d3.select(element);
+  this.dataService.$dataB.subscribe(dataB => {
+    this.barData = dataB;
+  });
+
+  this.host.html('');
+  this.svg = this.host.append('svg')
+  .data([this.barData])
+  .attr('width', this.width + this.margin.left + this.margin.right)
+  .attr('height', this.height + this.margin.top + this.margin.right)
+  .append('g')
+  .attr('transform', 'translate(' + this.width / 2  + ',' + this.height / 2 + ')');
 
   const parseDate = d3.timeParse('%Y-%m-%d');
 
@@ -59,15 +67,15 @@ export class BarchartComponent implements OnInit, OnChanges {
   this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat('%Y-%m-%d'));
   this.yAxis = d3.axisLeft(this.yScale).ticks(10);
 
-  this.xDomain = (this.data.map(function(d) { return d.date; }));
-  this.yDomain = ([0, d3.max(this.data, function(d) { return d.RecordInBatch; })]);
+  this.xDomain = (this.barData.map(function(d) { return d.date; }));
+  this.yDomain = ([0, d3.max(this.barData, function(d) { return d.RecordInBatch; })]);
 
-  this.data.forEach(function(d) {
-    d.date = parseDate(d.DATE);
-    d.RecordInBatch = +d.RECORDINBATCH;
-    });
+  // this.data.forEach(function(d) {
+  //   d.date = parseDate(d.DATE);
+  //   d.RecordInBatch = +d.RECORDINBATCH;
+  //   });
 
-  this.chart = svg.append('g')
+  this.chart = this.svg.append('g')
     .attr('class', 'x axis')
     .attr('transform', 'translate(0,${this.height})')
     .call(this.xAxis)
@@ -78,7 +86,7 @@ export class BarchartComponent implements OnInit, OnChanges {
     .attr('dy', '-.55em')
     .attr('transform', 'rotate(-90)' );
 
-  this.chart = svg.append('g')
+  this.chart = this.svg.append('g')
     .attr('class', 'y axis')
     .call(this.yAxis)
     .append('text')
@@ -88,12 +96,12 @@ export class BarchartComponent implements OnInit, OnChanges {
     .style('text-anchor', 'end')
     .text('Records');
 
-  this.chart = svg.selectAll('bar')
-    .data(this.data)
+  this.chart = this.svg.selectAll('bar')
+    .data(this.barData)
     .enter().append('rect')
     .style('fill', 'steelblue')
     .attr('x', d => this.xScale(d.date))
-    .attr('width', this.xScale.rangeBand())
+    .attr('width', this.xScale.bandwidth())
     .attr('y', d => this.yScale(d.RecordInBatch))
     .attr('height', d => this.height - this.yScale(d.RecordInBatch));
 
