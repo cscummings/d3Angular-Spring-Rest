@@ -13,86 +13,75 @@ export class LineGraphComponent implements OnInit, OnChanges {
   @ViewChild('containerLineChart') private lineChartContainer: ElementRef;
   // @Input() private data: Array<any>;
 
-  private chart: any;
-  private host: any;
-  private svg: any;
-  private lineData: BData[];
-  private margin: any = {top: 20, right: 20, bottom: 30, left: 20};
-  private width: any = 400 - this.margin.left - this.margin.right;
-  private height: any = 400 - this.margin.left - this.margin.right;
-  private xScale: any;
-  private yScale: any;
-  private xAxis: any;
-  private yAxis: any;
-  private xDomain: any;
-  private yDomain: any;
+  private lineComponent: this;
 
   constructor(private dataService: DataService ) { }
 
   ngOnInit() {
     this.createChart();
-    if (this.lineData) {
-      this.updateChart();
-    }
   }
 
   ngOnChanges() {
-    if (this.chart) {
       this.updateChart();
-    }
+
 
   }
 
   createChart() {
+    const margin: any = {top: 20, right: 20, bottom: 30, left: 20};
+    const width: any = 400 - margin.left - margin.right;
+    const height: any = 400 - margin.left - margin.right;
+
     const element = this.lineChartContainer.nativeElement;
-    this.host = d3.select(element);
+    const host = d3.select(element);
+
+   // let lineData = this.lineData;
+    let lineData: BData[];
+
     this.dataService.$dataB.subscribe(dataB => {
-      this.lineData = dataB;
+      lineData = dataB;
     });
 
-    const parseDate = d3.timeParse('%Y-%m-%d');
+    // move this code to HttpClient service since incoming date will be string
+    const parseDate = d3.timeParse('%m/%d/%Y');
 
-    this.host.html('');
-    this.svg = this.host.append('svg')
-    .data([this.lineData])
-    .attr('width', this.width + this.margin.left + this.margin.right)
-    .attr('height', this.height + this.margin.top + this.margin.right)
-    .append('g')
-    .attr('transform', 'translate(' + this.width / 2  + ',' + this.height / 2 + ')');
+    lineData.forEach(function(d) {
+      d.date = parseDate(d.date);
+      d.RecordInBatch = +d.RecordInBatch;
+      });
 
+    const x: any = d3.scaleTime()
+               .range([0, width]);
 
-    // this.lineData.forEach(function(d) {
-    //   d.date = parseDate(d.date);
-    //   d.RecordInBatch = +d.RecordInBatch;
-    //   });
+    const y: any = d3.scaleLinear()
+               .range([height, 0]);
 
-    this.xScale = d3.scaleTime()
-                  .range([0, this.width])
-                  .domain(d3.extent(this.lineData, function(d) { return d.date; }));
-    this.yScale = d3.scaleLinear()
-                  .range([this.height, 0])
-                  .domain(d3.extent(this.lineData, function(d) { return d.RecordInBatch; }));
+    const xAxis = d3.axisBottom(x);
 
-    this.xAxis = d3.axisBottom(this.xScale);
-    this.yAxis = d3.axisLeft(this.yScale);
-
-    const xValues: Date[] = this.lineData.map(data => data.date);
-    const yValues: number[] = this.lineData.map(data => data.RecordInBatch);
+    const yAxis = d3.axisLeft(y);
 
     const line = d3.line<BData>()
-    //  .x( d => this.xScale(xValues))
-    //  .y( d => this.yScale(yValues));
-    .x(function(d, i) {return this.xScale(i); })
-    .y(function(d) { return this.yScale(d.RecordInBatch); });
+    .x(function(d, i, data) { return x(d.date) ; })
+    .y(function(d , i , data) { return y(d.RecordInBatch) ; });
 
-    this.chart = this.svg.append('g')
+    host.html('');
+    const svg = host.append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.right)
+    .append('g')
+    .attr('transform', 'translate(' + margin.left  + ',' + margin.top + ')');
+
+    x.domain(d3.extent(lineData, function(d) { return d.date ; }));
+    y.domain(d3.extent(lineData, function(d) { return d.RecordInBatch; }));
+
+    let chart = svg.append('g')
     .attr('class', 'x axis')
-    .attr('transform', 'translate(0,${this.height})')
-    .call(this.xAxis);
+    .attr('transform', 'translate(0,' + height + ')')
+    .call(xAxis);
 
-  this.chart = this.svg.append('g')
+     chart = svg.append('g')
     .attr('class', 'y axis')
-    .call(this.yAxis)
+    .call(yAxis)
     .append('text')
     .attr('transform', 'rotate(-90)')
     .attr('y', 6)
@@ -100,10 +89,10 @@ export class LineGraphComponent implements OnInit, OnChanges {
     .style('text-anchor', 'end')
     .text(' # Records');
 
-  this.chart = this.svg.append('path')
-    .datum(this.lineData)
+    chart = svg.append('path')
+    .datum(lineData)
     .attr('class', 'line')
-    .attr('dx', line);
+    .attr('d', line);
   }
 
   updateChart() {

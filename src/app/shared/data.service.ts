@@ -8,31 +8,31 @@ import { BData } from './data.interface';
 export class DataService {
     private mockBData: BData[] = [
       {
-        date: new Date('01/01/2018'),
+        date: '1/1/2018',
         RecordInBatch: 271
       },
       {
-        date: new Date('01/02/2018'),
-        RecordInBatch: 2271
+        date: '1/2/2018' ,
+        RecordInBatch: 120
 
       },
       {
-        date: new Date('01/03/2018'),
+        date: '1/3/2018' ,
         RecordInBatch: 71
 
       },
       {
-        date: new Date('01/04/2018'),
-        RecordInBatch: 714
+        date: '1/4/2018' ,
+        RecordInBatch: 64
 
       },
       {
-        date: new Date('01/05/2018'),
-        RecordInBatch: 3471
+        date: '1/5/2018' ,
+        RecordInBatch: 34
 
       },
       {
-        date: new Date('01/06/2018'),
+        date: '1/6/2018' ,
         RecordInBatch: 12
 
       }

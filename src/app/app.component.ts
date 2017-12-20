@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DataService } from './shared/data.service';
-import { IData } from './shared/data.interface';
+import { IData, BData } from './shared/data.interface';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +10,8 @@ import { IData } from './shared/data.interface';
 export class AppComponent implements OnInit {
   title = 'D3 Chart Examples';
   data: IData[];
+  dataB: BData[];
+
   newQueuenm: string;
   newCase: number;
 
@@ -19,6 +21,11 @@ export class AppComponent implements OnInit {
     this.dataService.$data.subscribe(data => {
       this.data = data;
     });
+
+    this.dataService.$dataB.subscribe(dataB => {
+      this.dataB = dataB;
+    });
+
   }
 
 }

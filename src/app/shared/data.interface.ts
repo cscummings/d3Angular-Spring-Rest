@@ -3,6 +3,7 @@ export interface IData {
     QUEUE_NM: string;
 }
 export interface BData {
-    date: Date;
+    date: any;
     RecordInBatch: number;
+
 }

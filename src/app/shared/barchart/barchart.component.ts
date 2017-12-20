@@ -57,7 +57,8 @@ export class BarchartComponent implements OnInit, OnChanges {
   .attr('width', this.width + this.margin.left + this.margin.right)
   .attr('height', this.height + this.margin.top + this.margin.right)
   .append('g')
-  .attr('transform', 'translate(' + this.width / 2  + ',' + this.height / 2 + ')');
+//  .attr('transform', 'translate(' + (this.width / 2)  + ',' + (this.height / 2) + ')');
+  .attr('transform', 'translate(' + this.width + ',' + (this.height / 2) + ')');
 
   const parseDate = d3.timeParse('%Y-%m-%d');
 
@@ -77,14 +78,13 @@ export class BarchartComponent implements OnInit, OnChanges {
 
   this.chart = this.svg.append('g')
     .attr('class', 'x axis')
-    .attr('transform', 'translate(0,${this.height})')
-    .call(this.xAxis)
-    .selectAll('text')
-
-    .style('text-anchor', 'end')
-    .attr('dx', '-.8em')
-    .attr('dy', '-.55em')
-    .attr('transform', 'rotate(-90)' );
+    .attr('transform', 'translate(0,' + this.height / 2 + ')')
+    .call(this.xAxis);
+    // .selectAll('text')
+    // .style('text-anchor', 'end')
+    // .attr('dx', '-.8em')
+    // .attr('dy', '-.55em')
+    // .attr('transform', 'rotate(-90)' );
 
   this.chart = this.svg.append('g')
     .attr('class', 'y axis')
