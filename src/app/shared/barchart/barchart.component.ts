@@ -12,98 +12,88 @@ import { DataService } from '../data.service';
 })
 export class BarchartComponent implements OnInit, OnChanges {
   @ViewChild('containerBarChart') private barChartContainer: ElementRef;
-  // @Input() private data: Array<any>;
-  private barData: BData[];
-
-  private chart: any;
-  private host: any;
-  private svg: any;
-  private margin: any = {top: 20, right: 20, bottom: 70, left: 40};
-  private width: any = 400 - this.margin.left - this.margin.right;
-  private height: any = 400 - this.margin.left - this.margin.right;
-  private xScale: any;
-  private yScale: any;
-  private xAxis: any;
-  private yAxis: any;
-  private xDomain: any;
-  private yDomain: any;
 
   constructor(private dataService: DataService ) { }
 
   ngOnInit() {
     this.createChart();
-    if (this.barData) {
-      this.updateChart();
-    }
   }
 
   ngOnChanges() {
-    if (this.chart) {
       this.updateChart();
-    }
   }
 
   createChart() {
-  // set width and height here instead
-  const element = this.barChartContainer.nativeElement;
-  this.host = d3.select(element);
-  this.dataService.$dataB.subscribe(dataB => {
-    this.barData = dataB;
-  });
 
-  this.host.html('');
-  this.svg = this.host.append('svg')
-  .data([this.barData])
-  .attr('width', this.width + this.margin.left + this.margin.right)
-  .attr('height', this.height + this.margin.top + this.margin.right)
-  .append('g')
-//  .attr('transform', 'translate(' + (this.width / 2)  + ',' + (this.height / 2) + ')');
-  .attr('transform', 'translate(' + this.width + ',' + (this.height / 2) + ')');
+    let barData: BData[];
 
-  const parseDate = d3.timeParse('%Y-%m-%d');
+    const margin: any = {top: 20, right: 20, bottom: 70, left: 40};
+    const width: any = 400 - margin.left - margin.right;
+    const height: any = 400 - margin.left - margin.right;
 
-  this.xScale = d3.scaleBand().rangeRound([0, this.width]);
-  this.yScale = d3.scaleLinear().range([this.height, 0]);
+    const element = this.barChartContainer.nativeElement;
+    const host = d3.select(element);
+    this.dataService.$dataB.subscribe(dataB => {
+      barData = dataB;
+    });
 
-  this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat('%Y-%m-%d'));
-  this.yAxis = d3.axisLeft(this.yScale).ticks(10);
+     host.html('');
+     const svg = host.append('svg')
+                    .data([barData])
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.right)
+                    .append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-  this.xDomain = (this.barData.map(function(d) { return d.date; }));
-  this.yDomain = ([0, d3.max(this.barData, function(d) { return d.RecordInBatch; })]);
+    const parseDate = d3.timeParse('%m/%d/%Y');
 
-  // this.data.forEach(function(d) {
-  //   d.date = parseDate(d.DATE);
-  //   d.RecordInBatch = +d.RECORDINBATCH;
-  //   });
+//    const xScale: any = d3.scaleBand().rangeRound([0,  width]);
+    const xScale: any = d3.scaleTime().range([0,  width]);
+    const yScale: any = d3.scaleLinear().range([ height, 0]);
 
-  this.chart = this.svg.append('g')
-    .attr('class', 'x axis')
-    .attr('transform', 'translate(0,' + this.height / 2 + ')')
-    .call(this.xAxis);
-    // .selectAll('text')
-    // .style('text-anchor', 'end')
-    // .attr('dx', '-.8em')
-    // .attr('dy', '-.55em')
-    // .attr('transform', 'rotate(-90)' );
+    barData.forEach(function(d) {
+      d.date = parseDate(d.date);
+      d.RecordInBatch = +d.RecordInBatch;
+      });
 
-  this.chart = this.svg.append('g')
-    .attr('class', 'y axis')
-    .call(this.yAxis)
-    .append('text')
-    .attr('transform', 'rotate(-90)')
-    .attr('y', 6)
-    .attr('dy', '.71em')
-    .style('text-anchor', 'end')
-    .text('Records');
+    xScale.domain = ( barData.map(function(d) { return d.date; }));
+    yScale.domain = ([0, d3.max( barData, function(d) { return d.RecordInBatch; })]);
 
-  this.chart = this.svg.selectAll('bar')
-    .data(this.barData)
-    .enter().append('rect')
-    .style('fill', 'steelblue')
-    .attr('x', d => this.xScale(d.date))
-    .attr('width', this.xScale.bandwidth())
-    .attr('y', d => this.yScale(d.RecordInBatch))
-    .attr('height', d => this.height - this.yScale(d.RecordInBatch));
+    const xAxis: any = d3.axisBottom( xScale)
+                        .ticks(d3.timeDay, 1)
+                         .tickFormat(d3.timeFormat('%m/%d/%Y'));
+    const yAxis = d3.axisLeft( yScale)
+                    .ticks(10);
+
+     let chart =  svg.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(0,' +  height  + ')')
+                    .call( xAxis)
+                    .selectAll('text')
+                    .append('text')
+                    .attr('transform', 'rotate(-90)' )
+                    .attr('dx', '-.8em')
+                    .attr('dy', '-.55em')
+                    .style('text-anchor', 'end');
+
+     chart =  svg.append('g')
+                .attr('class', 'y axis')
+                .call( yAxis)
+                .append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('y', 6)
+                .attr('dy', '.71em')
+                .style('text-anchor', 'end')
+                .text('Records');
+
+     chart =  svg.selectAll('bar')
+                .data( barData)
+                .enter().append('rect')
+                .style('fill', 'steelblue')
+                .attr('x', d =>  xScale(d.date))
+                .attr('width',  xScale.bandwidth())
+                .attr('y', d =>  yScale(d.RecordInBatch))
+                .attr('height', d =>  height -  yScale(d.RecordInBatch));
 
 
   }
