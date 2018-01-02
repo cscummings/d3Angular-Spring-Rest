@@ -24,76 +24,84 @@ export class BarchartComponent implements OnInit, OnChanges {
   }
 
   createChart() {
-
-    let barData: BData[];
-
     const margin: any = {top: 20, right: 20, bottom: 70, left: 40};
     const width: any = 400 - margin.left - margin.right;
     const height: any = 400 - margin.left - margin.right;
 
     const element = this.barChartContainer.nativeElement;
     const host = d3.select(element);
+
+    let barData: BData[];
+
     this.dataService.$dataB.subscribe(dataB => {
       barData = dataB;
     });
 
-     host.html('');
-     const svg = host.append('svg')
-                    .data([barData])
-                    .attr('width', width + margin.left + margin.right)
-                    .attr('height', height + margin.top + margin.right)
-                    .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
     const parseDate = d3.timeParse('%m/%d/%Y');
-
-//    const xScale: any = d3.scaleBand().rangeRound([0,  width]);
-    const xScale: any = d3.scaleTime().range([0,  width]);
-    const yScale: any = d3.scaleLinear().range([ height, 0]);
 
     barData.forEach(function(d) {
       d.date = parseDate(d.date);
       d.RecordInBatch = +d.RecordInBatch;
       });
 
-    xScale.domain = ( barData.map(function(d) { return d.date; }));
-    yScale.domain = ([0, d3.max( barData, function(d) { return d.RecordInBatch; })]);
+   const x: any = d3.scaleTime().range([0,  width]);
+    // const x: any = d3.scaleTime()
+    //                  .range([0,  width]);
 
-    const xAxis: any = d3.axisBottom( xScale)
-                        .ticks(d3.timeDay, 1)
-                         .tickFormat(d3.timeFormat('%m/%d/%Y'));
-    const yAxis = d3.axisLeft( yScale)
-                    .ticks(10);
+    const y: any = d3.scaleLinear()
+                    .range([ height, 0]);
 
-     let chart =  svg.append('g')
-                    .attr('class', 'x axis')
-                    .attr('transform', 'translate(0,' +  height  + ')')
-                    .call( xAxis)
-                    .selectAll('text')
-                    .append('text')
-                    .attr('transform', 'rotate(-90)' )
-                    .attr('dx', '-.8em')
-                    .attr('dy', '-.55em')
-                    .style('text-anchor', 'end');
+    const xAxis: any = d3.axisBottom(x);
 
-     chart =  svg.append('g')
-                .attr('class', 'y axis')
-                .call( yAxis)
-                .append('text')
-                .attr('transform', 'rotate(-90)')
-                .attr('y', 6)
-                .attr('dy', '.71em')
-                .style('text-anchor', 'end')
-                .text('Records');
+    const yAxis = d3.axisLeft(y);
 
-     chart =  svg.selectAll('bar')
-                .data( barData)
-                .enter().append('rect')
-                .style('fill', 'steelblue')
-                .attr('x', d =>  xScale(d.date))
-                .attr('width',  xScale.bandwidth())
-                .attr('y', d =>  yScale(d.RecordInBatch))
-                .attr('height', d =>  height -  yScale(d.RecordInBatch));
+    host.html('');
+    const svg = host.append('svg')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.right)
+                    .append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+    x.domain = (d3.extent(barData, function(d) { return d.date ; }));
+    y.domain = (d3.extent(barData, function(d) { return d.RecordInBatch; }));
+
+    let chart = svg.append('g')
+    .attr('class', 'x axis')
+    .attr('transform', 'translate(0,' + height + ')')
+    .call(xAxis);
+
+    chart = svg.append('g')
+    .attr('class', 'y axis')
+    .attr('transform', 'translate(0,' +  height  + ')')
+    .call( yAxis)
+    .append('text')
+    .attr('transform', 'rotate(-90)')
+    .attr('y', 6)
+    .attr('dy', '.71em')
+    .style('text-anchor', 'end')
+    .text(' # Records');
+
+
+    svg.selectAll('.bar')
+    .data( barData)
+    .enter().append('rect')
+    .attr('class', 'bar')
+    .style('fill', 'steelblue')
+    .attr('x', d =>  x(d.date))
+    .attr('width',  x.bandwidth())
+    .attr('y', d =>  y(d.RecordInBatch))
+    .attr('height', function(d) {return height -  y(d.RecordInBatch); }  );
+
+    // chart = svg.append('g')
+    //                 //.attr('class', 'x axis')
+    //                 .call(d3.axisBottom(x));
+    //                 // .selectAll('text')
+    //                 // .append('text')
+    //                 // .attr('transform', 'rotate(-90)' )
+    //                 // .attr('dx', '-.8em')
+    //                 // .attr('dy', '-.55em')
+    //                 // .style('text-anchor', 'end');
+
 
 
   }
