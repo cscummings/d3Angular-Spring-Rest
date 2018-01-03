@@ -44,16 +44,17 @@ export class BarchartComponent implements OnInit, OnChanges {
       d.RecordInBatch = +d.RecordInBatch;
       });
 
-   const x: any = d3.scaleTime().range([0,  width]);
-    // const x: any = d3.scaleTime()
-    //                  .range([0,  width]);
+    const x: any = d3.scaleBand().rangeRound([0, width]).padding(0.1);
 
     const y: any = d3.scaleLinear()
                     .range([ height, 0]);
 
-    const xAxis: any = d3.axisBottom(x);
+    const xAxis: any = d3.axisBottom(x)
+                          .scale(x)
+                          .tickFormat(d3.timeFormat('%m/%d/%Y')) ;
 
-    const yAxis = d3.axisLeft(y);
+    const yAxis = d3.axisLeft(y)
+     .scale(y).ticks(10);
 
     host.html('');
     const svg = host.append('svg')
@@ -62,17 +63,21 @@ export class BarchartComponent implements OnInit, OnChanges {
                     .append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    x.domain = (d3.extent(barData, function(d) { return d.date ; }));
-    y.domain = (d3.extent(barData, function(d) { return d.RecordInBatch; }));
+    x.domain(barData.map((d) => d.date)) ;
+    y.domain([0, d3.max(barData, (d) => d.RecordInBatch )]);
 
     let chart = svg.append('g')
     .attr('class', 'x axis')
     .attr('transform', 'translate(0,' + height + ')')
-    .call(xAxis);
+    .call(xAxis)
+    .append('text')
+    .style('text-anchor', 'end')
+    .attr('dx', '-.8em')
+    .attr('dy', '-.55em')
+    .attr('transform', 'rotate(-90)' );
 
     chart = svg.append('g')
     .attr('class', 'y axis')
-    .attr('transform', 'translate(0,' +  height  + ')')
     .call( yAxis)
     .append('text')
     .attr('transform', 'rotate(-90)')
@@ -82,27 +87,15 @@ export class BarchartComponent implements OnInit, OnChanges {
     .text(' # Records');
 
 
-    svg.selectAll('.bar')
+    svg.selectAll('bar')
     .data( barData)
     .enter().append('rect')
     .attr('class', 'bar')
     .style('fill', 'steelblue')
-    .attr('x', d =>  x(d.date))
+    .attr('x', (d) =>  x(d.date))
     .attr('width',  x.bandwidth())
-    .attr('y', d =>  y(d.RecordInBatch))
+    .attr('y', (d) =>  y(d.RecordInBatch))
     .attr('height', function(d) {return height -  y(d.RecordInBatch); }  );
-
-    // chart = svg.append('g')
-    //                 //.attr('class', 'x axis')
-    //                 .call(d3.axisBottom(x));
-    //                 // .selectAll('text')
-    //                 // .append('text')
-    //                 // .attr('transform', 'rotate(-90)' )
-    //                 // .attr('dx', '-.8em')
-    //                 // .attr('dy', '-.55em')
-    //                 // .style('text-anchor', 'end');
-
-
 
   }
 
