@@ -1,14 +1,14 @@
-import { AppPage } from './app.po';
+import { D3AngularSpringRestPage } from './app.po';
 
-describe('d3-angular-spring-rest App', () => {
-  let page: AppPage;
+describe('d3-angular-spring-rest App', function() {
+  let page: D3AngularSpringRestPage;
 
   beforeEach(() => {
-    page = new AppPage();
+    page = new D3AngularSpringRestPage();
   });
 
-  it('should display welcome message', () => {
+  it('should display message saying app works', () => {
     page.navigateTo();
-    expect(page.getParagraphText()).toEqual('Welcome to app!');
+    expect(page.getParagraphText()).toEqual('app works!');
   });
 });

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DataService } from './shared/data.service';
 import { IData, BData } from './shared/data.interface';
+import { PathosBatchService } from './shared/pathos-batch.service';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,7 @@ export class AppComponent implements OnInit {
   newQueuenm: string;
   newCase: number;
 
-  constructor(private dataService: DataService) {}
+  constructor(private dataService: DataService, private pathosBatchService: PathosBatchService) {}
 
   ngOnInit() {
     this.dataService.$data.subscribe(data => {

@@ -2,6 +2,7 @@ import { Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsu
 import * as d3 from 'd3';
 import { BData } from '../data.interface';
 import { DataService } from '../data.service';
+import { PathosBatchService } from '../pathos-batch.service';
 
 
 @Component({
@@ -13,7 +14,7 @@ import { DataService } from '../data.service';
 export class BarchartComponent implements OnInit, OnChanges {
   @ViewChild('containerBarChart') private barChartContainer: ElementRef;
 
-  constructor(private dataService: DataService ) { }
+  constructor(private dataService: DataService, private pathosBatchService: PathosBatchService ) { }
 
   ngOnInit() {
     this.createChart();
@@ -32,11 +33,13 @@ export class BarchartComponent implements OnInit, OnChanges {
     const host = d3.select(element);
 
     let barData: BData[];
+    let testData: BData[];
 
     this.dataService.$dataB.subscribe(dataB => {
       barData = dataB;
     });
 
+    //testData = this.pathosBatchService.loadAllbatches();
     const parseDate = d3.timeParse('%m/%d/%Y');
 
     barData.forEach(function(d) {
