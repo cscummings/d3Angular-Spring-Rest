@@ -1,17 +1,76 @@
+
+import {throwError as observableThrowError,  Observable, of } from 'rxjs';
+
+import {dematerialize, delay, materialize, mergeMap} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpRequest, HttpResponse, HttpHandler, HttpEvent, HttpInterceptor, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/throw';
-import 'rxjs/add/operator/delay';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/materialize';
-import 'rxjs/add/operator/dematerialize';
+import { of as observableOf } from 'rxjs/observable/of'
 // add app settings to get URLS
 import { AppSettings } from '../appSettings';
+import { IData } from './data.interface';
+import { BData } from './data.interface';
+
 
 @Injectable()
 export class FakeBackendInterceptor implements HttpInterceptor {
+  private mockBData: BData[] = [
+    {
+      date: '1/1/2018',
+      RecordInBatch: 271
+    },
+    {
+      date: '1/2/2018' ,
+      RecordInBatch: 120
+
+    },
+    {
+      date: '1/3/2018' ,
+      RecordInBatch: 71
+
+    },
+    {
+      date: '1/4/2018' ,
+      RecordInBatch: 64
+
+    },
+    {
+      date: '1/5/2018' ,
+      RecordInBatch: 34
+
+    },
+    {
+      date: '1/6/2018' ,
+      RecordInBatch: 12
+
+    }
+  ];
+
+  private mockData: IData[] = [
+    {
+      CASES: 2,
+      QUEUE_NM: 'Blue(RD)Non-Lobby'
+    },
+    {
+      CASES: 2,
+      QUEUE_NM: 'Blue(Renewals)Non-Lobby'
+    },
+    {
+      CASES: 4,
+      QUEUE_NM: 'Green(Intake)Non-Lobby'
+    },
+    {
+      CASES: 62,
+      QUEUE_NM: 'Orange(Changes)Non-Lobby'
+    },
+    {
+      CASES: 1,
+      QUEUE_NM: 'Purple(Processing)Non-Lobby'
+    },
+    {
+      CASES: 20,
+      QUEUE_NM: 'Red(Tanf-Intake)Non-Lobby'
+    }
+  ];
 
     constructor() { }
 
@@ -21,15 +80,17 @@ export class FakeBackendInterceptor implements HttpInterceptor {
         const users: any[] = JSON.parse(localStorage.getItem('users')) || [];
 
         // wrap in delayed observable to simulate server api call
-        return Observable.of(null).mergeMap(() => {
+        return observableOf(null).pipe(mergeMap(() => {
 
              // break up requests into individual functions
 
              // return simple count
-             if (request.url.endsWith('/api/pathos_batch/count') && request.method === 'GET') {
-              const body = { count: 12 } ;
-
-              return Observable.of(new HttpResponse({ status: 200, body: body }));
+             if (request.url.endsWith('/PathometerApplication/api/pathos_batch/') && request.method === 'GET') {
+              console.log('fakeBackendProvider.intercept() :' + ' /api/pathos_batch ' + request) ;
+//              const data = JSON.stringify(this.mockBData);
+              const body = { any: this.mockBData } ;
+              console.log('fakeBackendProvider.intercept()' + this.mockBData) ;
+              return observableOf(new HttpResponse({ status: 200, body: body }));
 
              }
 
@@ -51,10 +112,10 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                         token: 'fake-jwt-token'
                     };
 
-                    return Observable.of(new HttpResponse({ status: 200, body: body }));
+                    return observableOf(new HttpResponse({ status: 200, body: body }));
                 } else {
                     // else return 400 bad request
-                    return Observable.throw('Username or password is incorrect');
+                    return observableThrowError('Username or password is incorrect');
                 }
             }
 
@@ -63,10 +124,10 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 // check for fake auth token in header and return users if valid,
                 // this security is implemented server side in a real application
                 if (request.headers.get('Authorization') === 'Bearer fake-jwt-token') {
-                    return Observable.of(new HttpResponse({ status: 200, body: users }));
+                    return observableOf(new HttpResponse({ status: 200, body: users }));
                 } else {
                     // return 401 not authorised if token is null or invalid
-                    return Observable.throw('Unauthorised');
+                    return observableThrowError('Unauthorised');
                 }
             }
 
@@ -82,10 +143,10 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                     const matchedUsers = users.filter(user =>  user.id === id);
                     const user = matchedUsers.length ? matchedUsers[0] : null;
 
-                    return Observable.of(new HttpResponse({ status: 200, body: user }));
+                    return observableOf(new HttpResponse({ status: 200, body: user }));
                 } else {
                     // return 401 not authorised if token is null or invalid
-                    return Observable.throw('Unauthorised');
+                    return observableThrowError('Unauthorised');
                 }
             }
 
@@ -97,7 +158,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 // validation
                 const duplicateUser = users.filter(user => user.username === newUser.username).length;
                 if (duplicateUser) {
-                    return Observable.throw('Username "' + newUser.username + '" is already taken');
+                    return observableThrowError('Username "' + newUser.username + '" is already taken');
                 }
 
                 // save new user
@@ -106,7 +167,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 localStorage.setItem('users', JSON.stringify(users));
 
                 // respond 200 OK
-                return Observable.of(new HttpResponse({ status: 200 }));
+                return observableOf(new HttpResponse({ status: 200 }));
             }
 
             // delete user
@@ -128,23 +189,23 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                     }
 
                     // respond 200 OK
-                    return Observable.of(new HttpResponse({ status: 200 }));
+                    return observableOf(new HttpResponse({ status: 200 }));
                 } else {
                     // return 401 not authorised if token is null or invalid
-                    return Observable.throw('Unauthorised');
+                    return observableThrowError('Unauthorised');
                 }
             }
 
             // pass through any requests not handled above
             return next.handle(request);
 
-        })
+        }),
 
         // call materialize and dematerialize to ensure delay
         // even if an error is thrown (https://github.com/Reactive-Extensions/RxJS/issues/648)
-        .materialize()
-        .delay(500)
-        .dematerialize();
+        materialize(),
+        delay(500),
+        dematerialize(), );
     }
 }
 

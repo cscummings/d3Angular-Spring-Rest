@@ -1,7 +1,22 @@
 import * as d3 from 'd3';
 import { Component, OnInit, OnChanges, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+
+import {
+  D3Service,
+  D3,
+  Axis,
+  BrushBehavior,
+  BrushSelection,
+  D3BrushEvent,
+  ScaleLinear,
+  ScaleOrdinal,
+  Selection,
+  Transition
+} from 'd3-ng2-service';
 import { BData } from '../data.interface';
-import { DataService } from '../data.service';
+import { PathosBatchService, BDataResponse } from '../pathos-batch.service';
 
 @Component({
   selector: 'app-line-graph',
@@ -12,19 +27,26 @@ import { DataService } from '../data.service';
 export class LineGraphComponent implements OnInit, OnChanges {
   @ViewChild('containerLineChart') private lineChartContainer: ElementRef;
   // @Input() private data: Array<any>;
+  private d3: D3;
+  private parentNativeElement: any;
+  private d3Svg: Selection<SVGSVGElement, any, null, undefined>;
 
   private lineComponent: this;
 
-  constructor(private dataService: DataService ) { }
+  public lineData: BData[] ;
+
+  constructor(private pathosBatchService: PathosBatchService ) { }
 
   ngOnInit() {
-    this.createChart();
+    this.pathosBatchService.loadAllbatches().subscribe((lineData) => {
+      this.lineData = lineData;
+      this.createChart();
+    });
+
   }
 
   ngOnChanges() {
       this.updateChart();
-
-
   }
 
   createChart() {
@@ -35,17 +57,22 @@ export class LineGraphComponent implements OnInit, OnChanges {
     const element = this.lineChartContainer.nativeElement;
     const host = d3.select(element);
 
-   // let lineData = this.lineData;
-    let lineData: BData[];
+   const linedata = this.lineData;
 
-    this.dataService.$dataB.subscribe(dataB => {
-      lineData = dataB;
-    });
+    this.pathosBatchService.loadAllbatches().map( (data) => {
+      console.log('bar data' + data);
+      this.lineData = data;
+      console.log('this.bardata ' + this.lineData)
+})
+.catch((error) => {
+ console.log('error ' + error)
+ throw error;
+});
 
     // move this code to HttpClient service since incoming date will be string
     const parseDate = d3.timeParse('%m/%d/%Y');
 
-    lineData.forEach(function(d) {
+    linedata.forEach(function(d) {
       d.date = parseDate(d.date);
       d.RecordInBatch = +d.RecordInBatch;
       });
@@ -71,8 +98,8 @@ export class LineGraphComponent implements OnInit, OnChanges {
     .append('g')
     .attr('transform', 'translate(' + margin.left  + ',' + margin.top + ')');
 
-    x.domain(d3.extent(lineData, function(d) { return d.date ; }));
-    y.domain(d3.extent(lineData, function(d) { return d.RecordInBatch; }));
+    x.domain(d3.extent(linedata, function(d) { return d.date ; }));
+    y.domain(d3.extent(linedata, function(d) { return d.RecordInBatch; }));
 
     let chart = svg.append('g')
     .attr('class', 'x axis')
@@ -90,7 +117,7 @@ export class LineGraphComponent implements OnInit, OnChanges {
     .text(' # Records');
 
     chart = svg.append('path')
-    .datum(lineData)
+    .datum(linedata)
     .attr('class', 'line')
     .attr('d', line);
   }

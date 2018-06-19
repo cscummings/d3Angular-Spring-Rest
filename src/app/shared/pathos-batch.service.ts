@@ -1,22 +1,28 @@
+
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http' ;
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/map';
+import { HttpClient, HttpParams, HttpResponse, HttpErrorResponse, HttpHeaders } from '@angular/common/http' ;
+import {throwError as observableThrowError,  Observable, of } from 'rxjs';
+import {catchError, tap} from 'rxjs/operators';
 
 import { BData } from './data.interface';
+import { IData } from './data.interface';
+
 import { AppSettings } from '../appSettings';
+
+export interface BDataResponse {
+  data: BData[];
+}
 
 @Injectable()
 export class PathosBatchService {
 
-  public batches: BData[];
-  public dateCounts: any;
-  public currentCount: any;
-  public totalQueueCount: any;
+  public batches: Observable<any>;
+  public dateCounts: Observable<string>;
+  public currentCount: Observable<string>;
+  public totalQueueCount: Observable<string>;
 
-  constructor(private http: HttpClient, private inurls: string[]) {
+//  constructor(private http: HttpClient, private inurls: string[]) {
+  constructor(private http: HttpClient ) {
   }
 
 
@@ -27,19 +33,20 @@ export class PathosBatchService {
   //     .catch(this.handleError);
   // }
 
-  public loadAllbatches() {
+
+  // Returns an observalbe automatically - which can be subscribed to by invokers
+  public loadAllbatches(): Observable<BData[]> {
     console.log('Fetching all batch ids');
+
 //        Make the HTTP request:
-        this.http.get(AppSettings.BATCH_SERVICE_API).subscribe(data => {
-           // Read the result field from the JSON response.
-          console.log('Fetched successfully all batch entries');
-          this.batches = data['results'];
-        } ,
-        (err: HttpErrorResponse) => {
-          this.handleError(err);
-        }) ;
-        return this.batches;
-  }
+         return this.http.get<BData[]>(AppSettings.BATCH_SERVICE_API)
+          .pipe(
+            tap(data => console.log('got em' + JSON.stringify(data))),
+            catchError(e => {
+              return observableThrowError(new Error('${ e.status } ${ e.statusText }'));
+            }), ) ;
+    }
+
 
   public getAllBatches() {
     return this.batches;
@@ -48,11 +55,11 @@ export class PathosBatchService {
   public getDateCounts() {
     console.log('Fetching Date Counts');
     return this.http
-      .get(AppSettings.BATCH_SERVICE_API_CURRENT_COUNT)
-      .map(response => this.dateCounts = response.toString())
-      .catch(e => {
-        return Observable.throw(new Error('${ e.status } ${ e.statusText }'));
-      });
+      .get(AppSettings.BATCH_SERVICE_API_CURRENT_COUNT).pipe(
+      tap(data => console.log('getDateCounts :' + JSON.stringify(data))),
+      catchError(e => {
+        return observableThrowError(new Error('${ e.status } ${ e.statusText }'));
+      }), ) ;
   }
 
   public getAllDateCounts() {
@@ -62,26 +69,28 @@ export class PathosBatchService {
   public getCurrentBatchCount() {
     console.log('Fetching Current Count');
       return this.http
-      .get(AppSettings.BATCH_SERVICE_API_CURRENT_COUNT)
-      .map(response => this.currentCount = response.toString())
-      .catch(e => {
-        return Observable.throw(new Error('${ e.status } ${ e.statusText }'));
-      });
+      .get(AppSettings.BATCH_SERVICE_API_BACKLOG).pipe(
+      tap(data => console.log('getCurrentBatchCounts :' + JSON.stringify(data))),
+      catchError(e => {
+        return observableThrowError(new Error('${ e.status } ${ e.statusText }'));
+      }), ) ;
   }
 
   public fetchCurrentCount() {
     return this.currentCount;
   }
 
-  public getTotalQueueCount() {
+  public getTotalQueueCount(): Observable<IData[]> {
     console.log('Fetching Total Queue Count');
      return this.http
-     .get(AppSettings.BATCH_SERVICE_TOTALQUEUE_COUNT)
-     .map(response => this.totalQueueCount = response.toString())
-     .catch(e => {
-       return Observable.throw(new Error('${ e.status } ${ e.statusText }'));
-     });
- }
+     .get<IData[]>(AppSettings.BATCH_SERVICE_TOTALQUEUE_COUNT)
+     .pipe(
+      tap(data => console.log('getTotalQueueCount :' + JSON.stringify(data))),
+     catchError(e => {
+       return observableThrowError(new Error('${ e.status } ${ e.statusText }'));
+     }), ) ;
+
+    }
 
   public fetchTotalQueueCount() {
     return this.totalQueueCount;
@@ -104,6 +113,31 @@ export class PathosBatchService {
       }, error message is: ${error.message}`;
     }
     console.error(errorMessage);
-    return Observable.throw(errorMessage);
+    return observableThrowError(errorMessage);
   }
+
+//  /**
+//    * Handle Http operation that failed.
+//    * Let the app continue.
+//    * @param operation - name of the operation that failed
+//    * @param result - optional value to return as the observable result
+//    */
+//   private handleError<T> (operation = 'operation', result?: T) {
+//     return (error: any): Observable<T> => {
+
+//       // TODO: send the error to remote logging infrastructure
+//       console.error(error); // log to console instead
+
+//       // TODO: better job of transforming error for user consumption
+//       this.log(`${operation} failed: ${error.message}`);
+
+//       // Let the app keep running by returning an empty result.
+//       return of(result as T);
+//     };
+//   }
+
+//   /** Log a HeroService message with the MessageService */
+//   private log(message: string) {
+//     this.messageService.add('PathosBatchService: ' + message);
+//   }
 }

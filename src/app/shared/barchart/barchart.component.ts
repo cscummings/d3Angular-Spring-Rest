@@ -1,9 +1,22 @@
-import { Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
-import { BData } from '../data.interface';
-import { DataService } from '../data.service';
-import { PathosBatchService } from '../pathos-batch.service';
+import { Component, OnInit, OnChanges, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
+import {
+  D3Service,
+  D3,
+  Axis,
+  BrushBehavior,
+  BrushSelection,
+  D3BrushEvent,
+  ScaleLinear,
+  ScaleOrdinal,
+  Selection,
+  Transition
+} from 'd3-ng2-service';
+import { BData } from '../data.interface';
+import { PathosBatchService, BDataResponse } from '../pathos-batch.service';
 
 @Component({
   selector: 'app-barchart',
@@ -13,11 +26,22 @@ import { PathosBatchService } from '../pathos-batch.service';
 })
 export class BarchartComponent implements OnInit, OnChanges {
   @ViewChild('containerBarChart') private barChartContainer: ElementRef;
+  private d3: D3;
+  private parentNativeElement: any;
+  private d3Svg: Selection<SVGSVGElement, any, null, undefined>;
 
-  constructor(private dataService: DataService, private pathosBatchService: PathosBatchService ) { }
+  private barComponent: this;
+
+  public barData: BData[] ;
+
+  constructor(private pathosBatchService: PathosBatchService ) { }
 
   ngOnInit() {
-    this.createChart();
+    this.pathosBatchService.loadAllbatches().subscribe((barData) => {
+      this.barData = barData;
+      this.createChart();
+    });
+
   }
 
   ngOnChanges() {
@@ -32,17 +56,20 @@ export class BarchartComponent implements OnInit, OnChanges {
     const element = this.barChartContainer.nativeElement;
     const host = d3.select(element);
 
-    let barData: BData[];
-    let testData: BData[];
-
-    this.dataService.$dataB.subscribe(dataB => {
-      barData = dataB;
-    });
-
-    //testData = this.pathosBatchService.loadAllbatches();
     const parseDate = d3.timeParse('%m/%d/%Y');
 
-    barData.forEach(function(d) {
+    this.pathosBatchService.loadAllbatches().map( (data) => {
+           console.log('bar data' + data);
+           this.barData = data;
+           console.log('this.bardata ' + this.barData)
+    })
+    .catch((error) => {
+      console.log('error ' + error)
+      throw error;
+    });
+
+    const bardata = this.barData;
+    bardata.forEach(function(d) {
       d.date = parseDate(d.date);
       d.RecordInBatch = +d.RecordInBatch;
       });
@@ -66,8 +93,8 @@ export class BarchartComponent implements OnInit, OnChanges {
                     .append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    x.domain(barData.map((d) => d.date)) ;
-    y.domain([0, d3.max(barData, (d) => d.RecordInBatch )]);
+    x.domain(this.barData.map((d) => d.date)) ;
+    y.domain([0, d3.max(this.barData, (d) => d.RecordInBatch )]);
 
     let chart = svg.append('g')
     .attr('class', 'x axis')
@@ -91,7 +118,7 @@ export class BarchartComponent implements OnInit, OnChanges {
 
 
     svg.selectAll('bar')
-    .data( barData)
+    .data( this.barData)
     .enter().append('rect')
     .attr('class', 'bar')
     .style('fill', 'steelblue')

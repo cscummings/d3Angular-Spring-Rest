@@ -1,21 +1,26 @@
-import { TestBed, async, inject } from '@angular/core/testing';
+import { TestBed, getTestBed, async, inject } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing' ;
-import { MockBackend, MockConnection } from '@angular/http/testing' ;
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import { PathosBatchService } from './pathos-batch.service';
-import { HttpClientModule, HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AppSettings } from '../appSettings';
 
 describe('PathosBatchService', () => {
+  let injector: TestBed;
+  let pathosBatchService: PathosBatchService;
+  let httpMock: HttpTestingController;
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         PathosBatchService] ,
-      imports: [
-        HttpClientModule,
-        HttpClientTestingModule]
+      imports: [HttpClientTestingModule]
     });
   });
+
+  injector = getTestBed();
+  pathosBatchService = injector.get(PathosBatchService);
+  httpMock = injector.get(HttpTestingController);
 
   it('should be created', inject([PathosBatchService], (service: PathosBatchService) => {
     expect(service).toBeTruthy();

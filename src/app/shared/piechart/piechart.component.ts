@@ -1,7 +1,22 @@
-import { Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
+import { Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+
+import {
+  D3Service,
+  D3,
+  Axis,
+  BrushBehavior,
+  BrushSelection,
+  D3BrushEvent,
+  ScaleLinear,
+  ScaleOrdinal,
+  Selection,
+  Transition
+} from 'd3-ng2-service';
 import { IData } from '../data.interface';
-import { DataService } from '../data.service';
+import { PathosBatchService, BDataResponse } from '../pathos-batch.service';
 
 @Component({
   selector: 'app-piechart',
@@ -12,11 +27,17 @@ export class PiechartComponent implements OnInit, OnChanges {
   @ViewChild('containerPieChart') private pieChartContainer: ElementRef;
   // @Input() private data: Array<any>;
 
+  private d3: D3;
+  private parentNativeElement: any;
+  private d3Svg: Selection<SVGSVGElement, any, null, undefined>;
+
+  private lineComponent: this;
+
+  public pieData: IData[] ;
 
   private chart: any;
   private host: any;
   private svg: any;
-  private pieData: IData[];
 
   private margin: any = {top: 20, right: 20, bottom: 30, left: 20};
   private width: any = 400 - this.margin.left - this.margin.right;
@@ -24,13 +45,14 @@ export class PiechartComponent implements OnInit, OnChanges {
   private radius: number = Math.min(this.width, this.height) / 2;
   private aColor: any = d3.scaleOrdinal(['Blue', 'SkyBlue', 'Green', 'Orange', 'Purple', 'Red', 'Sienna']);
 
-  constructor(private dataService: DataService ) { }
+  constructor(private pathosBatchService: PathosBatchService ) { }
 
   ngOnInit() {
-    this.createChart();
-    if (this.pieData) {
-      this.updateChart();
-    }
+    this.pathosBatchService.getTotalQueueCount().subscribe((data) => {
+      this.pieData = data;
+      this.createChart();
+    });
+
   }
 
   ngOnChanges() {
@@ -43,9 +65,9 @@ export class PiechartComponent implements OnInit, OnChanges {
   createChart() {
     const element = this.pieChartContainer.nativeElement;
     this.host = d3.select(element);
-    this.dataService.$data.subscribe(data => {
-      this.pieData = data;
-    });
+    // this.dataService.$data.subscribe(data => {
+    //   this.pieData = data;
+    // });
 
     this.host.html('');
     this.svg = this.host.append('svg')
