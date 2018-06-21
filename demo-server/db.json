@@ -55,5 +55,8 @@
         "CASES": 20,
         "QUEUE_NM": "Red(Tanf-Intake)Non-Lobby"
       }
-    ]
+    ],
+  "count": [9],
+  "backlog":[456]
+
 }
