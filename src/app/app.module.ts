@@ -23,7 +23,6 @@ import { PathosBatchService } from './shared/pathos-batch.service';
     NgbModule.forRoot()
   ],
   providers: [
-  //  DataService,
     D3Service,
     PathosBatchService
   ],

@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <title>D3AngularSpringRest</title>
   <base href="/">
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
@@ -55,28 +54,8 @@
         </li>
       </ul>
     </nav>
-
-    <main class="col-lg-9 col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
-      <h1>Dashboard</h1>
-     <div class="row" id="area1">
-  <div class="col-xs-12" ng-Controller="PathosBatchController">
-          <p role="presentation" class="active">
-            <button class="btn"> Current Count <span class="badge badge-primary">{{count}} </span></button>
-             <button type="button" class="btn btn-xs btn-info">
-             <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh</button>
-          </p>
+    <app-root>Loading...</app-root>
   </div>
 </div>
-    <div class="row" ng-view="">
-      <app-root>Loading...</app-root>
-    </div>
-    <!-- <app-root>Loading...</app-root> -->
-
-  </main>
-  </div>
-</div>
-
-
-
 </body>
 </html>

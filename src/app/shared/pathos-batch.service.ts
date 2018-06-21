@@ -18,27 +18,15 @@ export class PathosBatchService {
 
   public batches: Observable<any>;
   public dateCounts: Observable<string>;
-  public currentCount: Observable<string>;
+  public currentCount: Observable<any>;
   public totalQueueCount: Observable<string>;
 
 //  constructor(private http: HttpClient, private inurls: string[]) {
   constructor(private http: HttpClient ) {
   }
 
-
-  // public getSurveyQuestion(): Observable<ISurvey[]>{
-  //   return this.http
-  //     .get<ISurvey[]>('./src/survey.json')
-  //     .do(data => console.log('All : ' + JSON.stringify(data)))
-  //     .catch(this.handleError);
-  // }
-
-
-  // Returns an observalbe automatically - which can be subscribed to by invokers
   public loadAllbatches(): Observable<BData[]> {
     console.log('Fetching all batch ids');
-
-//        Make the HTTP request:
          return this.http.get<BData[]>(AppSettings.BATCH_SERVICE_API)
           .pipe(
             tap(data => console.log('got em' + JSON.stringify(data))),
@@ -68,12 +56,13 @@ export class PathosBatchService {
 
   public getCurrentBatchCount() {
     console.log('Fetching Current Count');
-      return this.http
+      this.currentCount = this.http
       .get(AppSettings.BATCH_SERVICE_API_BACKLOG).pipe(
       tap(data => console.log('getCurrentBatchCounts :' + JSON.stringify(data))),
       catchError(e => {
         return observableThrowError(new Error('${ e.status } ${ e.statusText }'));
       }), ) ;
+      return this.currentCount;
   }
 
   public fetchCurrentCount() {
@@ -116,28 +105,4 @@ export class PathosBatchService {
     return observableThrowError(errorMessage);
   }
 
-//  /**
-//    * Handle Http operation that failed.
-//    * Let the app continue.
-//    * @param operation - name of the operation that failed
-//    * @param result - optional value to return as the observable result
-//    */
-//   private handleError<T> (operation = 'operation', result?: T) {
-//     return (error: any): Observable<T> => {
-
-//       // TODO: send the error to remote logging infrastructure
-//       console.error(error); // log to console instead
-
-//       // TODO: better job of transforming error for user consumption
-//       this.log(`${operation} failed: ${error.message}`);
-
-//       // Let the app keep running by returning an empty result.
-//       return of(result as T);
-//     };
-//   }
-
-//   /** Log a HeroService message with the MessageService */
-//   private log(message: string) {
-//     this.messageService.add('PathosBatchService: ' + message);
-//   }
 }
